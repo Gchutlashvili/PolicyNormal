@@ -1,8 +1,10 @@
 ﻿using DAL.BusinessObjects;
 using DevExpress.Xpo;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using DevExpress.Data.ODataLinq.Helpers;
 
 namespace PolicyNormal.Module.BusinessObjects
 {
@@ -23,6 +25,8 @@ namespace PolicyNormal.Module.BusinessObjects
         //[DataSourceCriteria]
         //public List<Car> GetCarsByVehicleType
         //    => Session.Query<Car>().Where(c => c.VehicleModel.VehicleMark == VehicleMark).ToList();
+        
+
         [Association]//, DSDataSourceProperty(nameof(GetCarsByVehicleType))]
         public Car Car { get; set; }
 
