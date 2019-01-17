@@ -35,6 +35,10 @@ namespace PolicyNormal.Module
 
             var dsDefaultClassOptionsTypes =
                 typesInfo.PersistentTypes.Where(t => t.Attributes.Any(a => a.GetType().Name.StartsWith("DS")));
+            var testOptionTypes = 
+                typesInfo.PersistentTypes
+                .Select(t => t.Name)
+                .Where(t => t.ToLower().Contains("x"));
 
             foreach (var dsDefaultClassOptionsType in dsDefaultClassOptionsTypes)
             {
