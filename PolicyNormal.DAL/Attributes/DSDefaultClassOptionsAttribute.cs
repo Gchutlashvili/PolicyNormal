@@ -1,15 +1,17 @@
 ﻿using System;
+// ReSharper disable InconsistentNaming
 
 namespace DAL.BusinessObjects
 {
+    public class DSAttribute : Attribute { }
 
-    //Created Attributes => DSAction, DSXafDisplayName;
-    public class DSDefaultClassOptionsAttribute : Attribute { }
-    public class DSტრუხა : Attribute { }
+    //Created Attributes => DSActionAttribute, DSXafDisplayName;
+    public class DSDefaultClassOptionsAttribute : DSAttribute { }
+    public class DSტრუხა : DSAttribute { }
 
-    public class DSImmediatePostDataAttribute : Attribute { }
+    public class DSImmediatePostDataAttribute : DSAttribute { }
 
-    public class DSDataSourcePropertyAttribute : Attribute
+    public class DSDataSourcePropertyAttribute : DSAttribute
     {
         public string PropertyName { get; set; }
 
@@ -19,7 +21,7 @@ namespace DAL.BusinessObjects
         }
     }
 
-    public class DSXafDisplayNameAttribute : Attribute
+    public class DSXafDisplayNameAttribute : DSAttribute
     {
         public string DisplayName { get; set; }
 
@@ -29,5 +31,5 @@ namespace DAL.BusinessObjects
         }
     }
 
-    public class DSAction : Attribute {}
+    public class DSActionAttribute : DSAttribute { }
 }

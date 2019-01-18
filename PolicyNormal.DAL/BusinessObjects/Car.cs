@@ -1,4 +1,6 @@
-﻿using DAL.BusinessObjects;
+﻿using System;
+using System.Linq;
+using DAL.BusinessObjects;
 using DevExpress.Xpo;
 
 namespace PolicyNormal.Module.BusinessObjects
@@ -13,5 +15,22 @@ namespace PolicyNormal.Module.BusinessObjects
 
         public int VehicleYear { get; set; }
         [Association] public XPCollection<Policy> Policies => GetCollection<Policy>(nameof(Policies));
+        protected override void OnChanged(string propertyName, object oldValue, object newValue)
+        {
+            base.OnChanged(propertyName, oldValue, newValue);
+
+
+        }
+
+        protected override void OnSaving()
+        {
+            base.OnSaving();
+
+            var existingCarsWithSameRegistrationNumber =
+                Session.Query<Car>().Where(car => car.RegistrationNumber == RegistrationNumber);
+
+            if (existingCarsWithSameRegistrationNumber.Any())
+                throw new Exception();
+        }
     }
 }

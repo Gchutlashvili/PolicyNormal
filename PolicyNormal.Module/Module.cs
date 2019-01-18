@@ -9,85 +9,106 @@ using PolicyNormal.Module.BusinessObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DevExpress.Utils.Extensions;
 using DSXafDisplayNameAttribute = DAL.BusinessObjects.DSXafDisplayNameAttribute;
 
 namespace PolicyNormal.Module
 {
     // For more typical usage scenarios, be sure to check out https://documentation.devexpress.com/eXpressAppFramework/clsDevExpressExpressAppModuleBasetopic.aspx.
-    public sealed partial class PolicyNormalModule : ModuleBase {
-        public PolicyNormalModule() {
+    public sealed partial class PolicyNormalModule : ModuleBase
+    {
+        public PolicyNormalModule()
+        {
             InitializeComponent();
-			BaseObject.OidInitializationMode = OidInitializationMode.AfterConstruction;
+            BaseObject.OidInitializationMode = OidInitializationMode.AfterConstruction;
             AdditionalExportedTypes.AddRange(ModuleHelper.CollectExportedTypesFromAssembly(typeof(Human).Assembly, t => !t.ContainsGenericParameters));
 
         }
-        public override IEnumerable<ModuleUpdater> GetModuleUpdaters(IObjectSpace objectSpace, Version versionFromDB) {
+        public override IEnumerable<ModuleUpdater> GetModuleUpdaters(IObjectSpace objectSpace, Version versionFromDB)
+        {
             ModuleUpdater updater = new DatabaseUpdate.Updater(objectSpace, versionFromDB);
             return new ModuleUpdater[] { updater };
         }
-        public override void Setup(XafApplication application) {
+        public override void Setup(XafApplication application)
+        {
             base.Setup(application);
             // Manage various aspects of the application UI and behavior at the module level.
         }
-        public override void CustomizeTypesInfo(ITypesInfo typesInfo) {
+        public override void CustomizeTypesInfo(ITypesInfo typesInfo)
+        {
             base.CustomizeTypesInfo(typesInfo);
             CalculatedPersistentAliasHelper.CustomizeTypesInfo(typesInfo);
 
             var dsDefaultClassOptionsTypes =
-                typesInfo.PersistentTypes.Where(t => t.Attributes.Any(a => a.GetType().Name.StartsWith("DS")));
-            var testOptionTypes = 
-                typesInfo.PersistentTypes
-                .Select(t => t.Name)
-                .Where(t => t.ToLower().Contains("x"));
+                typesInfo
+                .PersistentTypes
+                //.Where(t => t.Attributes.Any(a => a.GetType().Name.StartsWith("DS")));
+                .Where(t => t.Attributes.Any(a => a is DSAttribute));
+
+            //var testOptionTypes = 
+            //    typesInfo.PersistentTypes
+            //    .Select(t => t.Name)
+            //    .Where(t => t.ToLower().Contains("x"));
 
             foreach (var dsDefaultClassOptionsType in dsDefaultClassOptionsTypes)
             {
                 dsDefaultClassOptionsType.AddAttribute(new DefaultClassOptionsAttribute());
 
-                var dataSourcePropertyAttributeMembers =
-                    dsDefaultClassOptionsType.Members.Where(m =>
-                        m.Attributes.Any(a => a is DSDataSourcePropertyAttribute));
+                void MapAttribute<TSource>(Func<TSource, Attribute> getSourceAttribute) where TSource : DSAttribute
+                => dsDefaultClassOptionsType
+                        .Members
+                        .Where(m => m.Attributes.Any(a => a is TSource))
+                        .ForEach(attributeMember => attributeMember.AddAttribute(getSourceAttribute(attributeMember.FindAttribute<TSource>())));
 
-                foreach (var dataSourcePropertyAttributeMember in dataSourcePropertyAttributeMembers)
-                {
-                    var dsPropertyAttributePropertyName = dataSourcePropertyAttributeMember
-                        .FindAttribute<DSDataSourcePropertyAttribute>().PropertyName;
+                MapAttribute<DSDataSourcePropertyAttribute>(t => new DataSourcePropertyAttribute(t.PropertyName));
+                MapAttribute<DSImmediatePostDataAttribute>(t => new ImmediatePostDataAttribute());
+                MapAttribute<DSXafDisplayNameAttribute>(t => new XafDisplayNameAttribute(t.DisplayName));
+                MapAttribute<DSActionAttribute>(t => new ActionAttribute());
 
-                    dataSourcePropertyAttributeMember.AddAttribute(new DataSourcePropertyAttribute(dsPropertyAttributePropertyName));
-                }
+                //var dataSourcePropertyAttributeMembers =
+                //    dsDefaultClassOptionsType.Members.Where(m =>
+                //        m.Attributes.Any(a => a is DSDataSourcePropertyAttribute));
 
-                var immediatePostDataAttributeMembers = 
-                    dsDefaultClassOptionsType.Members.Where(m =>
-                        m.Attributes.Any(a => a is DSImmediatePostDataAttribute));
+                //foreach (var dataSourcePropertyAttributeMember in dataSourcePropertyAttributeMembers)
+                //{
+                //    var dsPropertyAttributePropertyName = dataSourcePropertyAttributeMember
+                //        .FindAttribute<DSDataSourcePropertyAttribute>().PropertyName;
 
-                foreach (var immediatePostDataAttributeMember in immediatePostDataAttributeMembers)
-                {
-                    immediatePostDataAttributeMember.AddAttribute(new ImmediatePostDataAttribute());
-                }
+                //    dataSourcePropertyAttributeMember.AddAttribute(new DataSourcePropertyAttribute(dsPropertyAttributePropertyName));
+                //}
 
-                var xafDisplayNameAttributeMembers =
-                    dsDefaultClassOptionsType.Members.Where(m => m.Attributes.Any(a => a is DSXafDisplayNameAttribute));
+                //var immediatePostDataAttributeMembers =
+                //    dsDefaultClassOptionsType.Members.Where(m =>
+                //        m.Attributes.Any(a => a is DSImmediatePostDataAttribute));
+
+                //foreach (var immediatePostDataAttributeMember in immediatePostDataAttributeMembers)
+                //{
+                //    immediatePostDataAttributeMember.AddAttribute(new ImmediatePostDataAttribute());
+                //}
+
+                //var xafDisplayNameAttributeMembers =
+                //    dsDefaultClassOptionsType.Members.Where(m => m.Attributes.Any(a => a is DSXafDisplayNameAttribute));
 
 
-                foreach (var xafDisplayNameAttributeMember in xafDisplayNameAttributeMembers)
-                {
-                    var xafDisplayNamePropertyDisplayName = xafDisplayNameAttributeMember
-                        .FindAttribute<DSXafDisplayNameAttribute>().DisplayName;
+                //foreach (var xafDisplayNameAttributeMember in xafDisplayNameAttributeMembers)
+                //{
+                //    var xafDisplayNamePropertyDisplayName = xafDisplayNameAttributeMember
+                //        .FindAttribute<DSXafDisplayNameAttribute>().DisplayName;
 
-                    xafDisplayNameAttributeMember.AddAttribute(
-                        new XafDisplayNameAttribute(xafDisplayNamePropertyDisplayName));
-                }
+                //    xafDisplayNameAttributeMember.AddAttribute(
+                //        new XafDisplayNameAttribute(xafDisplayNamePropertyDisplayName));
+                //}
 
-                var dsActionAttributeMembers =
-                    dsDefaultClassOptionsType.Members.Where(m => m.Attributes.Any(a => a is ActionAttribute));
+                //var dsActionAttributeMembers =
+                //    dsDefaultClassOptionsType.Members.Where(m => m.Attributes.Any(a => a is ActionAttribute));
 
-                foreach (var dsActionAttributeMember in dsActionAttributeMembers)
-                {
-                    dsActionAttributeMember.AddAttribute(new ActionAttribute());
-                }
+                //foreach (var dsActionAttributeMember in dsActionAttributeMembers)
+                //{
+                //    dsActionAttributeMember.AddAttribute(new ActionAttribute());
+                //}
             }
 
-           
+
 
         }
     }
